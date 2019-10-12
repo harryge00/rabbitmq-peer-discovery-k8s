@@ -42,7 +42,7 @@
 %%
 
 init() ->
-    rabbit_log:debug("Peer discovery Kubernetes: initialising..."),
+    rabbit_log:info("Peer discovery Mesos: initialising..."),
     ok = application:ensure_started(inets),
     %% we cannot start this plugin yet since it depends on the rabbit app,
     %% which is in the process of being started by the time this function is called
@@ -54,7 +54,10 @@ init() ->
 list_nodes() ->
     case make_request() of
 	{ok, Response} ->
+      rabbit_log:info("make_request ~p", [Response]),
 	    Addresses = extract_node_list(Response),
+      rabbit_log:info("extract_node_list ~p", [Addresses]),
+
 	    {ok, lists:map(fun node_name/1, Addresses)};
 	{error, Reason} ->
 	    rabbit_log:info(
