@@ -54,7 +54,6 @@ init() ->
 list_nodes() ->
     case make_request() of
 	{ok, Response} ->
-      rabbit_log:debug("make_request ~p", [Response]),
 	    Addresses = extract_node_list(Response),
       rabbit_log:debug("extract_node_list ~p", [Addresses]),
 
@@ -144,16 +143,17 @@ node_name(Address) ->
 %% SubSet can contain also "notReadyAddresses"  
 %% @end
 %%
-maybe_ready_address(Subset) ->
-    case maps:get(<<"notReadyAddresses">>, Subset, undefined) of
-      undefined -> ok;
-      NotReadyAddresses ->
-            Formatted = string:join([binary_to_list(get_address(X))
-                                     || X <- NotReadyAddresses], ", "),
-            rabbit_log:info("k8s endpoint listing returned nodes not yet ready: ~s",
-                            [Formatted])
-    end,
-    maps:get(<<"addresses">>, Subset, []).
+maybe_ready_address(Task) ->
+    case maps:get(<<"state">>, Task, <<"TASK_RUNNING">>) of
+      <<"TASK_RUNNING">> -> 
+            IpLists = maps:get(<<"ipAddresses">>, Task, []),
+            maps:get(<<"ipAddress">>, lists:nth(1, IpLists));
+      - ->
+            rabbit_log:info("Marathon endpoint listing returned nodes not yet ready: ~s",
+                            [Task]),
+            []
+    end.
+    
 
 %% @doc Return a list of nodes
 %%    see https://docs.d2iq.com/mesosphere/dcos/1.12/deploying-services/marathon-api/#/apps/V2AppsByAppId
@@ -161,10 +161,12 @@ maybe_ready_address(Subset) ->
 %%
 -spec extract_node_list(term()) -> [binary()].
 extract_node_list(Response) ->
-    IpLists = [[get_address(Address)
-		|| Address <- maybe_ready_address(Subset)]
-	       || Subset <- maps:get(<<"subsets">>, Response, [])],
-    sets:to_list(sets:union(lists:map(fun sets:from_list/1, IpLists))).
+    rabbit_log:debug("Response: ~p", [Response]),
+    App = maps:get(<<"app">>, Response, maps:new()),
+    rabbit_log:debug("App: ~p", [App]),
+    Tasks = maps:get(<<"tasks">>, App, []),
+    rabbit_log:debug("Tasks: ~p", Tasks), 
+    lists:foreach(maybe_ready_address, Tasks).
 
 
 %% @doc Return a list of path segments that are the base path for k8s key actions
@@ -174,7 +176,7 @@ extract_node_list(Response) ->
 base_path() ->
     M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
     %% TODO: improve the code
-     [v2] ++ string:split("apps" ++ get_config_key(marathon_app_id, M)).
+     [v2] ++ string:split("apps" ++ get_config_key(marathon_app_id, M), "/", all) .
 
 get_address(Address) ->
     M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
