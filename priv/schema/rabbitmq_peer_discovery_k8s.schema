@@ -29,13 +29,13 @@ end}.
 
 %% Kubernetes URI scheme
 
-{mapping, "cluster_formation.k8s.scheme", "rabbit.cluster_formation.peer_discovery_k8s.k8s_scheme", [
+{mapping, "cluster_formation.master.scheme", "rabbit.cluster_formation.peer_discovery_k8s.master_scheme", [
     {datatype, string}
 ]}.
 
-{translation, "rabbit.cluster_formation.peer_discovery_k8s.k8s_scheme",
+{translation, "rabbit.cluster_formation.peer_discovery_k8s.master_scheme",
 fun(Conf) ->
-    case cuttlefish:conf_get("cluster_formation.k8s.scheme", Conf, undefined) of
+    case cuttlefish:conf_get("cluster_formation.master.scheme", Conf, undefined) of
         undefined -> cuttlefish:unset();
         Value     -> Value
     end
@@ -85,11 +85,11 @@ end}.
 
 %% Service name
 
-{mapping, "cluster_formation.k8s.service_name", "rabbit.cluster_formation.peer_discovery_k8s.k8s_service_name", [
+{mapping, "cluster_formation.k8s.service_name", "rabbit.cluster_formation.peer_discovery_k8s.marathon_app_id", [
     {datatype, string}
 ]}.
 
-{translation, "rabbit.cluster_formation.peer_discovery_k8s.k8s_service_name",
+{translation, "rabbit.cluster_formation.peer_discovery_k8s.marathon_app_id",
 fun(Conf) ->
     case cuttlefish:conf_get("cluster_formation.k8s.service_name", Conf, undefined) of
         undefined -> cuttlefish:unset();

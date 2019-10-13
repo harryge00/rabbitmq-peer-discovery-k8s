@@ -30,10 +30,10 @@
                                                    env_variable  = "K8S_NAMESPACE_PATH",
                                                    default_value = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
                                                   },
-          k8s_service_name                   => #peer_discovery_config_entry_meta{
+          marathon_app_id                   => #peer_discovery_config_entry_meta{
                                                    type          = string,
-                                                   env_variable  = "K8S_SERVICE_NAME",
-                                                   default_value = "rabbitmq"
+                                                   env_variable  = "MARATHON_APP_ID",
+                                                   default_value = "/rabbitmq"
                                                   },
           k8s_address_type                   => #peer_discovery_config_entry_meta{
                                                    type          = string,

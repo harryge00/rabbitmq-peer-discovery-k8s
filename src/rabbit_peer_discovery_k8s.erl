@@ -54,9 +54,9 @@ init() ->
 list_nodes() ->
     case make_request() of
 	{ok, Response} ->
-      rabbit_log:info("make_request ~p", [Response]),
+      rabbit_log:debug("make_request ~p", [Response]),
 	    Addresses = extract_node_list(Response),
-      rabbit_log:info("extract_node_list ~p", [Addresses]),
+      rabbit_log:debug("extract_node_list ~p", [Addresses]),
 
 	    {ok, lists:map(fun node_name/1, Addresses)};
 	{error, Reason} ->
@@ -120,7 +120,6 @@ get_config_key(Key, Map) ->
 -spec make_request() -> {ok, term()} | {error, term()}.
 make_request() ->
     M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
-    rabbit_log:info([get_config_key(master_host, M), get_config_key(master_port, M)]),
     ?HTTPC_MODULE:get(
       get_config_key(master_scheme, M),
       get_config_key(master_host, M),
@@ -157,7 +156,7 @@ maybe_ready_address(Subset) ->
     maps:get(<<"addresses">>, Subset, []).
 
 %% @doc Return a list of nodes
-%%    see https://kubernetes.io/docs/api-reference/v1/definitions/#_v1_endpoints
+%%    see https://docs.d2iq.com/mesosphere/dcos/1.12/deploying-services/marathon-api/#/apps/V2AppsByAppId
 %% @end
 %%
 -spec extract_node_list(term()) -> [binary()].
@@ -174,11 +173,8 @@ extract_node_list(Response) ->
 -spec base_path() -> [?HTTPC_MODULE:path_component()].
 base_path() ->
     M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
-    {ok, NameSpace} = file:read_file(
-			get_config_key(k8s_namespace_path, M)),
-    NameSpace1 = binary:replace(NameSpace, <<"\n">>, <<>>),
-    [api, v1, namespaces, NameSpace1, endpoints,
-     get_config_key(k8s_service_name, M)].
+    %% TODO: improve the code
+     [v2] ++ string:split("apps" ++ get_config_key(marathon_app_id, M)).
 
 get_address(Address) ->
     M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
