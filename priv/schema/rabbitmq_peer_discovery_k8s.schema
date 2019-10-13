@@ -1,12 +1,12 @@
 %% Kubernetes host
 
-{mapping, "cluster_formation.k8s.host", "rabbit.cluster_formation.peer_discovery_k8s.k8s_host", [
+{mapping, "cluster_formation.master.host", "rabbit.cluster_formation.peer_discovery_k8s.master_host", [
     {datatype, string}
 ]}.
 
-{translation, "rabbit.cluster_formation.peer_discovery_k8s.k8s_host",
+{translation, "rabbit.cluster_formation.peer_discovery_k8s.master_host",
 fun(Conf) ->
-    case cuttlefish:conf_get("cluster_formation.k8s.host", Conf, undefined) of
+    case cuttlefish:conf_get("cluster_formation.master.host", Conf, undefined) of
         undefined -> cuttlefish:unset();
         Value     -> Value
     end
@@ -14,14 +14,14 @@ end}.
 
 %% Kubernetes port
 
-{mapping, "cluster_formation.k8s.port", "rabbit.cluster_formation.peer_discovery_k8s.k8s_port", [
+{mapping, "cluster_formation.master.port", "rabbit.cluster_formation.peer_discovery_k8s.master_port", [
     {datatype, integer},
     {validators, ["non_negative_integer"]}
 ]}.
 
-{translation, "rabbit.cluster_formation.peer_discovery_k8s.k8s_port",
+{translation, "rabbit.cluster_formation.peer_discovery_k8s.master_port",
 fun(Conf) ->
-    case cuttlefish:conf_get("cluster_formation.k8s.port", Conf, undefined) of
+    case cuttlefish:conf_get("cluster_formation.master.port", Conf, undefined) of
         undefined -> cuttlefish:unset();
         Value     -> Value
     end

@@ -1,19 +1,19 @@
 -define(CONFIG_MAPPING,
          #{
-          k8s_scheme                         => #peer_discovery_config_entry_meta{
+          master_scheme                         => #peer_discovery_config_entry_meta{
                                                    type          = string,
-                                                   env_variable  = "K8S_SCHEME",
-                                                   default_value = "https"
+                                                   env_variable  = "MESOS_MASTER_SCHEMA",
+                                                   default_value = "http"
                                                   },
-          k8s_host                           => #peer_discovery_config_entry_meta{
+          master_host                           => #peer_discovery_config_entry_meta{
                                                    type          = string,
-                                                   env_variable  = "K8S_HOST",
-                                                   default_value = "kubernetes.default.svc.cluster.local"
+                                                   env_variable  = "MESOS_MASTER_HOST",
+                                                   default_value = "master.mesos"
                                                   },
-          k8s_port                           => #peer_discovery_config_entry_meta{
+          master_port                           => #peer_discovery_config_entry_meta{
                                                    type          = integer,
-                                                   env_variable  = "K8S_PORT",
-                                                   default_value = 443
+                                                   env_variable  = "MESOS_MASTER_PORT",
+                                                   default_value = 8080
                                                   },
           k8s_token_path                     => #peer_discovery_config_entry_meta{
                                                    type          = string,

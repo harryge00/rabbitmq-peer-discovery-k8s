@@ -120,16 +120,15 @@ get_config_key(Key, Map) ->
 -spec make_request() -> {ok, term()} | {error, term()}.
 make_request() ->
     M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
-    {ok, Token} = file:read_file(get_config_key(k8s_token_path, M)),
-    Token1 = binary:replace(Token, <<"\n">>, <<>>),
+    rabbit_log:info([get_config_key(master_host, M), get_config_key(master_port, M)]),
     ?HTTPC_MODULE:get(
-      get_config_key(k8s_scheme, M),
-      get_config_key(k8s_host, M),
-      get_config_key(k8s_port, M),
+      get_config_key(master_scheme, M),
+      get_config_key(master_host, M),
+      get_config_key(master_port, M),
       base_path(),
       [],
-      [{"Authorization", "Bearer " ++ binary_to_list(Token1)}],
-      [{ssl, [{cacertfile, get_config_key(k8s_cert_path, M)}]}]).
+      [],
+      []).
 
 %% @spec node_name(k8s_endpoint) -> list()  
 %% @doc Return a full rabbit node name, appending hostname suffix
