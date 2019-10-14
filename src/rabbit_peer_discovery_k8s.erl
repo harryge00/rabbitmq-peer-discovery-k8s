@@ -133,10 +133,8 @@ make_request() ->
 %% @end
 %%
 node_name(Address) ->
-    M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
     ?UTIL_MODULE:node_name(
-       ?UTIL_MODULE:as_string(Address) ++ get_config_key(k8s_hostname_suffix, M)).
-    
+       ?UTIL_MODULE:as_string(Address)).
 
 %% @doc Return a list of nodes
 %%    see https://docs.d2iq.com/mesosphere/dcos/1.12/deploying-services/marathon-api/#/apps/V2AppsByAppId
@@ -144,23 +142,33 @@ node_name(Address) ->
 %%
 -spec extract_node_list(term()) -> [binary()].
 extract_node_list(Response) ->
-    rabbit_log:debug("Response: ~p", [Response]),
     App = maps:get(<<"app">>, Response, maps:new()),
-    rabbit_log:debug("App: ~p", [App]),
     Tasks = maps:get(<<"tasks">>, App, []),
     rabbit_log:debug("Tasks: ~p", Tasks), 
-    lists:foreach(fun(Task) ->
-      case maps:get(<<"state">>, Task, <<"TASK_RUNNING">>) of
-        <<"TASK_RUNNING">> -> 
-              IpLists = maps:get(<<"ipAddresses">>, Task, []),
-              maps:get(<<"ipAddress">>, lists:nth(1, IpLists));
-        _ ->
-              rabbit_log:info("Marathon endpoint listing returned nodes not yet ready: ~s",
-                              [Task]),
-              []
-      end
-    end, Tasks).
+    
+    % lists:filtermap(fun(X) -> case X of 3 -> false; _ -> {true, X * 2} end end, [1,2,3,4,5]).
 
+    % lists:filtermap(fun(Task) ->
+    %     case 
+    %     IpLists = maps:get(<<"ipAddresses">>, Task, []),
+    %     rabbit_log:debug("IpLists: ~p", [IpLists]), 
+    %     case IpLists ->
+    %       [] -> false;
+    %       _ -> 
+    %         IPAddress = maps:get(<<"ipAddress">>, lists:nth(1, IpLists)),
+
+    %     end
+
+
+    %   end,
+    %   Tasks).
+
+    lists:map(fun(Task) ->
+        IpLists = maps:get(<<"ipAddresses">>, Task, []),
+        rabbit_log:debug("IpLists: ~p", [IpLists]), 
+        maps:get(<<"ipAddress">>, lists:nth(1, IpLists))
+      end,
+      Tasks).
 
 %% @doc Return a list of path segments that are the base path for k8s key actions
 %% @end
