@@ -136,23 +136,6 @@ node_name(Address) ->
     M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
     ?UTIL_MODULE:node_name(
        ?UTIL_MODULE:as_string(Address) ++ get_config_key(k8s_hostname_suffix, M)).
-
-
-%% @spec maybe_ready_address(k8s_subsets()) -> list()
-%% @doc Return a list of ready nodes
-%% SubSet can contain also "notReadyAddresses"  
-%% @end
-%%
-maybe_ready_address(Task) ->
-    case maps:get(<<"state">>, Task, <<"TASK_RUNNING">>) of
-      <<"TASK_RUNNING">> -> 
-            IpLists = maps:get(<<"ipAddresses">>, Task, []),
-            maps:get(<<"ipAddress">>, lists:nth(1, IpLists));
-      - ->
-            rabbit_log:info("Marathon endpoint listing returned nodes not yet ready: ~s",
-                            [Task]),
-            []
-    end.
     
 
 %% @doc Return a list of nodes
@@ -166,7 +149,17 @@ extract_node_list(Response) ->
     rabbit_log:debug("App: ~p", [App]),
     Tasks = maps:get(<<"tasks">>, App, []),
     rabbit_log:debug("Tasks: ~p", Tasks), 
-    lists:foreach(maybe_ready_address, Tasks).
+    lists:foreach(fun(Task) ->
+      case maps:get(<<"state">>, Task, <<"TASK_RUNNING">>) of
+        <<"TASK_RUNNING">> -> 
+              IpLists = maps:get(<<"ipAddresses">>, Task, []),
+              maps:get(<<"ipAddress">>, lists:nth(1, IpLists));
+        _ ->
+              rabbit_log:info("Marathon endpoint listing returned nodes not yet ready: ~s",
+                              [Task]),
+              []
+      end
+    end, Tasks).
 
 
 %% @doc Return a list of path segments that are the base path for k8s key actions
@@ -177,7 +170,3 @@ base_path() ->
     M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
     %% TODO: improve the code
      [v2] ++ string:split("apps" ++ get_config_key(marathon_app_id, M), "/", all) .
-
-get_address(Address) ->
-    M = ?CONFIG_MODULE:config_map(?BACKEND_CONFIG_KEY),
-    maps:get(list_to_binary(get_config_key(k8s_address_type, M)), Address).
