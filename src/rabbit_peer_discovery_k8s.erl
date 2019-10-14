@@ -42,7 +42,7 @@
 %%
 
 init() ->
-    rabbit_log:debug("Peer discovery Kubernetes: initialising..."),
+    rabbit_log:debug("Peer discovery Hacked Kubernetes: initialising..."),
     ok = application:ensure_started(inets),
     %% we cannot start this plugin yet since it depends on the rabbit app,
     %% which is in the process of being started by the time this function is called
@@ -55,7 +55,10 @@ list_nodes() ->
     case make_request() of
 	{ok, Response} ->
 	    Addresses = extract_node_list(Response),
-	    {ok, lists:map(fun node_name/1, Addresses)};
+      rabbit_log:debug("Address: ~p", [Addresses]),
+      Result = lists:map(fun node_name/1, Addresses),
+      rabbit_log:debug("list_nodes: ~p", [Result]),
+	    {ok, Result};
 	{error, Reason} ->
 	    rabbit_log:info(
 	      "Failed to get nodes from k8s - ~s", [Reason]),
