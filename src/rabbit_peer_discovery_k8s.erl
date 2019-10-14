@@ -146,29 +146,25 @@ extract_node_list(Response) ->
     Tasks = maps:get(<<"tasks">>, App, []),
     rabbit_log:debug("Tasks: ~p", Tasks), 
     
-    % lists:filtermap(fun(X) -> case X of 3 -> false; _ -> {true, X * 2} end end, [1,2,3,4,5]).
-
-    % lists:filtermap(fun(Task) ->
-    %     case 
-    %     IpLists = maps:get(<<"ipAddresses">>, Task, []),
-    %     rabbit_log:debug("IpLists: ~p", [IpLists]), 
-    %     case IpLists ->
-    %       [] -> false;
-    %       _ -> 
-    %         IPAddress = maps:get(<<"ipAddress">>, lists:nth(1, IpLists)),
-
-    %     end
-
-
-    %   end,
-    %   Tasks).
-
-    lists:map(fun(Task) ->
-        IpLists = maps:get(<<"ipAddresses">>, Task, []),
-        rabbit_log:debug("IpLists: ~p", [IpLists]), 
-        maps:get(<<"ipAddress">>, lists:nth(1, IpLists))
+    lists:filtermap(fun(Task) ->
+        case maps:get(<<"state">>, Task) of
+          <<"TASK_RUNNING">> ->
+            IpLists = maps:get(<<"ipAddresses">>, Task, []),
+            rabbit_log:debug("IpLists: ~p", [IpLists]), 
+            {true, maps:get(<<"ipAddress">>, lists:nth(1, IpLists))};
+          _ -> 
+            rabbit_log:info("Skip not ready task: ~p", [Task]), 
+            false
+        end
       end,
       Tasks).
+
+    % lists:map(fun(Task) ->
+    %     IpLists = maps:get(<<"ipAddresses">>, Task, []),
+    %     rabbit_log:debug("IpLists: ~p", [IpLists]), 
+    %     maps:get(<<"ipAddress">>, lists:nth(1, IpLists))
+    %   end,
+    %   Tasks).
 
 %% @doc Return a list of path segments that are the base path for k8s key actions
 %% @end
